@@ -48,12 +48,13 @@ final class AuthManager {
         return UserDefaults.standard.object(forKey: "expirationDate") as? Date
     }
     
-    private var shouldRefreshToken: Bool {
+    var shouldRefreshToken: Bool {
         guard let expirationDate = tokenExpirationDate else { return false }
         
         let currentDate = Date()
         let fiveMinutes: TimeInterval = 300
         return currentDate.addingTimeInterval(fiveMinutes) >= expirationDate
+        
     }
     
     public func exchangeCodeForToken(code: String, completion: @escaping ((Bool) -> Void)) {
@@ -111,7 +112,7 @@ final class AuthManager {
     public func withValidToken(completion: @escaping (String) -> Void ) {
         print(shouldRefreshToken)
         guard !refreshingToken else {
-            onRefreshBlocks.append(completion)
+            //onRefreshBlocks.append(completion)
             return
         }
         
@@ -131,19 +132,22 @@ final class AuthManager {
         }
     }
     
-    public func refreshIfNeeded(completion: @escaping (Bool) -> Void) {
+    public func refreshIfNeeded(completion:  ((Bool) -> Void)?) {
+        
         guard !refreshingToken else {
             return
         }
         guard shouldRefreshToken else {
-            completion(true)
+            completion?(true)
             return
         }
-        guard let refreshToken = self.refreshToken else { return }
+        //print(refreshToken)
 
+        guard let refreshToken = self.refreshToken else { return }
+        
         guard let url = URL(string: Constans.tokenAPIURL) else {
             print("Failed to make url")
-            completion(false)
+            completion?(false)
             return
         }
         
@@ -163,7 +167,7 @@ final class AuthManager {
         let data = basicToken.data(using: .utf8)
         guard let base64String = data?.base64EncodedString() else {
             print("Failure to get base64")
-            completion(false)
+            completion?(false)
             return
         }
         request.setValue("Basic \(base64String)", forHTTPHeaderField: "Authorization")
@@ -174,7 +178,7 @@ final class AuthManager {
             self?.refreshingToken = false
             guard let data = data, error == nil else {
                 print("ERROR: to get data")
-                completion(false)
+                completion?(false)
                 return }
 
             do {
@@ -183,10 +187,10 @@ final class AuthManager {
                 self?.onRefreshBlocks.removeAll()
                 self?.cacheToken(result: result)
                 print("SUCCESS: \(result)")
-                completion(true)
+                completion?(true)
             } catch {
                 print("ERROR: \(error.localizedDescription) ooooo")
-                completion(false)
+                completion?(false)
             }
                 
         }.resume()
@@ -196,9 +200,11 @@ final class AuthManager {
     public func cacheToken(result: AuthResponse) {
         
         UserDefaults.standard.setValue(result.access_token, forKey: "access_token")
-        if let refreshToken = refreshToken {
+        
+        if let refreshToken = result.refresh_token {
             UserDefaults.standard.setValue(refreshToken, forKey: "refresh_token")
         }
+        
         UserDefaults.standard.setValue(Date().addingTimeInterval(TimeInterval(result.expires_in)), forKey: "expirationDate")
 
     }

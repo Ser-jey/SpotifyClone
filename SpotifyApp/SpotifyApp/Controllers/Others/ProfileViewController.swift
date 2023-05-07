@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SDWebImage
 
 class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
   
@@ -38,8 +39,6 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
     private func fetchProfile() {
         APICaller.shared.getCurrentUserProfile { [weak self] result in
             DispatchQueue.main.async {
-                self?.failedToGetProfile()
-
                 switch result {
                 case .success(let model):
                     self?.updateUI(with: model)
@@ -58,8 +57,23 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
         models.append("Email Address: \(model.email)")
         models.append("USER ID: \(model.id)")
         models.append("Plan: \(model.product)")
-
+        createTableHeader(with:  model.images.first?.url)
         tableView.reloadData()
+    }
+    
+    private func createTableHeader(with urlString: String?) {
+        guard let urlString = urlString, let url = URL(string: urlString) else{
+            return }
+        
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: Int(view.width), height: Int(view.width/1.5)))
+        let imageSize: CGFloat = headerView.height/2
+        let imageView = UIImageView(frame: CGRect(x: 0, y: 0, width: imageSize, height: imageSize))
+        imageView.center = headerView.center
+        imageView.layer.masksToBounds = true
+        imageView.layer.cornerRadius = imageSize/2
+        headerView.addSubview(imageView)
+        imageView.sd_setImage(with: url)
+        tableView.tableHeaderView = headerView
     }
     
     private func failedToGetProfile() {
