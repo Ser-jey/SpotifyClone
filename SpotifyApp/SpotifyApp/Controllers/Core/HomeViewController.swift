@@ -11,6 +11,17 @@ enum BrowseSectionType {
     case newReleases(viewModels: [NewReleasesCellViewModel])
     case featuredplaylists(viewModels: [FeaturedPlaylistCellViewModel])
     case recommendedTracks(viewModels: [RecommendedTrackCellViewModel])
+    
+    var title: String {
+        switch self {
+        case .newReleases:
+            return "New Released Album"
+        case .featuredplaylists:
+            return "Featured Playlist"
+        case .recommendedTracks:
+            return "Recommended"
+        }
+    }
 }
 
 class HomeViewController: UIViewController {
@@ -57,10 +68,14 @@ class HomeViewController: UIViewController {
     
     private func configureCollectionView() {
         view.addSubview(collectionView)
-        collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "cell")
         collectionView.register(NewReleaseCollectionViewCell.self, forCellWithReuseIdentifier: NewReleaseCollectionViewCell.identifier)
         collectionView.register(FeaturedPlaylistCollectionViewCell.self, forCellWithReuseIdentifier: FeaturedPlaylistCollectionViewCell.identifier)
         collectionView.register(RecommendedTrackCollectionViewCell.self, forCellWithReuseIdentifier: RecommendedTrackCollectionViewCell.identifier)
+        collectionView.register(
+            TitleHeaderCollectionReusableView.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+            withReuseIdentifier: TitleHeaderCollectionReusableView.identifier
+        )
 
         collectionView.dataSource = self
         collectionView.delegate = self
@@ -247,7 +262,28 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
         }
     }
     
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        guard let header = collectionView.dequeueReusableSupplementaryView(
+            ofKind: kind,
+            withReuseIdentifier: TitleHeaderCollectionReusableView.identifier,
+            for: indexPath
+        ) as? TitleHeaderCollectionReusableView, kind == UICollectionView.elementKindSectionHeader else { return UICollectionReusableView() }
+        let section = indexPath.section
+        let model = sections[section]
+        header.configure(with: model.title)
+        return header
+    }
+    
     fileprivate func createSectionLayout(section: Int) -> NSCollectionLayoutSection {
+        let supplementaryView = [
+            NSCollectionLayoutBoundarySupplementaryItem(
+                layoutSize: NSCollectionLayoutSize(
+                    widthDimension: .fractionalWidth(1),
+                    heightDimension: .absolute(50)),
+                elementKind: UICollectionView.elementKindSectionHeader,
+                alignment: .top
+            )
+        ]
         switch section {
         case 0:
             // Item
@@ -255,25 +291,26 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                 layoutSize: NSCollectionLayoutSize(
                     widthDimension: .fractionalWidth(1),
                     heightDimension: .fractionalHeight(0.33)))
-             item.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 3, bottom: 2, trailing: 3)
-             // Group
-             // Vertical group in Horizontal
-             let groupVertical = NSCollectionLayoutGroup.vertical(
+            item.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 3, bottom: 2, trailing: 3)
+            // Group
+            // Vertical group in Horizontal
+            let groupVertical = NSCollectionLayoutGroup.vertical(
                 layoutSize: NSCollectionLayoutSize(
                     widthDimension: .fractionalWidth(1),
                     heightDimension: .absolute(390)),
                 subitems: [item]
-             )
-             
-             let groupHorizontal = NSCollectionLayoutGroup.horizontal(
+            )
+            
+            let groupHorizontal = NSCollectionLayoutGroup.horizontal(
                 layoutSize: NSCollectionLayoutSize(
                     widthDimension: .fractionalWidth(0.9),
                     heightDimension: .absolute(390)),
                 subitems: [groupVertical]
-             )
-             // Section
-             let section = NSCollectionLayoutSection(group: groupHorizontal)
-             section.orthogonalScrollingBehavior = .groupPaging
+            )
+            // Section
+            let section = NSCollectionLayoutSection(group: groupHorizontal)
+            section.orthogonalScrollingBehavior = .groupPaging
+            section.boundarySupplementaryItems = supplementaryView
             return section
         case 1:
             // Item
@@ -281,26 +318,27 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                 layoutSize: NSCollectionLayoutSize(
                     widthDimension: .absolute(200),
                     heightDimension: .absolute(200)))
-             item.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 3, bottom: 2, trailing: 3)
-             // Group
-             // Horizontal
+            item.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 3, bottom: 2, trailing: 3)
+            // Group
+            // Horizontal
             
             let groupVertical = NSCollectionLayoutGroup.vertical(
-               layoutSize: NSCollectionLayoutSize(
-                   widthDimension: .absolute(200),
-                   heightDimension: .absolute(400)),
-               repeatingSubitem: item,
-               count: 2)
+                layoutSize: NSCollectionLayoutSize(
+                    widthDimension: .absolute(200),
+                    heightDimension: .absolute(400)),
+                repeatingSubitem: item,
+                count: 2)
             
-             let groupHorizontal = NSCollectionLayoutGroup.horizontal(
+            let groupHorizontal = NSCollectionLayoutGroup.horizontal(
                 layoutSize: NSCollectionLayoutSize(
                     widthDimension: .absolute(200),
                     heightDimension: .absolute(400)),
                 subitems: [groupVertical]
-             )
-             // Section
-             let section = NSCollectionLayoutSection(group: groupHorizontal)
-             section.orthogonalScrollingBehavior = .continuous
+            )
+            // Section
+            let section = NSCollectionLayoutSection(group: groupHorizontal)
+            section.orthogonalScrollingBehavior = .continuous
+            section.boundarySupplementaryItems = supplementaryView
             return section
         case 2:
             // Item
@@ -308,18 +346,19 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                 layoutSize: NSCollectionLayoutSize(
                     widthDimension: .fractionalWidth(1),
                     heightDimension: .fractionalHeight(1)))
-             item.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 3, bottom: 2, trailing: 3)
-             // Group
-             // Vertical group in Horizontal
-             let groupVertical = NSCollectionLayoutGroup.vertical(
+            item.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 3, bottom: 2, trailing: 3)
+            // Group
+            // Vertical group in Horizontal
+            let groupVertical = NSCollectionLayoutGroup.vertical(
                 layoutSize: NSCollectionLayoutSize(
                     widthDimension: .fractionalWidth(1),
                     heightDimension: .absolute(80)),
                 repeatingSubitem: item,
                 count: 1
-             )
-             // Section
-             let section = NSCollectionLayoutSection(group: groupVertical)
+            )
+            // Section
+            let section = NSCollectionLayoutSection(group: groupVertical)
+            section.boundarySupplementaryItems = supplementaryView
             return section
         default:
             // Item
@@ -327,18 +366,19 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                 layoutSize: NSCollectionLayoutSize(
                     widthDimension: .fractionalWidth(1),
                     heightDimension: .fractionalHeight(1)))
-             item.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 3, bottom: 2, trailing: 3)
-             // Group
-             // Vertical group in Horizontal
-             let group = NSCollectionLayoutGroup.vertical(
+            item.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 3, bottom: 2, trailing: 3)
+            // Group
+            // Vertical group in Horizontal
+            let group = NSCollectionLayoutGroup.vertical(
                 layoutSize: NSCollectionLayoutSize(
                     widthDimension: .fractionalWidth(1),
                     heightDimension: .absolute(390)),
                 subitems: [item]
-             )
-             
-             // Section
-             let section = NSCollectionLayoutSection(group: group)
+            )
+            
+            // Section
+            let section = NSCollectionLayoutSection(group: group)
+            section.boundarySupplementaryItems = supplementaryView
             return section
         }
    }

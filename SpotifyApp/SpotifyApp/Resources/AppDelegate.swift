@@ -16,18 +16,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         let window = UIWindow(frame: UIScreen.main.bounds)
         
-      
+        
         if AuthManager.shared.isSigned {
-            if AuthManager.shared.shouldRefreshToken {
-                print("Need to refresh? true")
-            }
             AuthManager.shared.refreshIfNeeded(completion: nil)
             window.rootViewController = TabBarViewController()
-            if AuthManager.shared.shouldRefreshToken {
-                print("Need to refresh? true")
-            }
         } else {
-       
             let navVC = UINavigationController(rootViewController: WelcomeViewController())
             navVC.navigationBar.prefersLargeTitles = true
             navVC.viewControllers.first?.navigationItem.largeTitleDisplayMode = .always
@@ -36,8 +29,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         window.makeKeyAndVisible()
         self.window = window
-
-       
         
         return true
     }
