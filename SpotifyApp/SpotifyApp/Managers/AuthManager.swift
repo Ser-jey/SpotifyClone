@@ -110,9 +110,9 @@ final class AuthManager {
     /// Supplies valid token to be used with API Calls
     /// - Parameter completion: Access Token
     public func withValidToken(completion: @escaping (String) -> Void ) {
-        print(shouldRefreshToken)
+        print("Should Refresh Token:  \(shouldRefreshToken)")
         guard !refreshingToken else {
-            //onRefreshBlocks.append(completion)
+            onRefreshBlocks.append(completion)
             return
         }
         
@@ -141,7 +141,7 @@ final class AuthManager {
             completion?(true)
             return
         }
-        //print(refreshToken)
+    
 
         guard let refreshToken = self.refreshToken else { return }
         
@@ -174,7 +174,6 @@ final class AuthManager {
         
         URLSession.shared.dataTask(with: request) { [weak self] data, _, error in
             print("start refteshing token")
-            print(request.description)
             self?.refreshingToken = false
             guard let data = data, error == nil else {
                 print("ERROR: to get data")

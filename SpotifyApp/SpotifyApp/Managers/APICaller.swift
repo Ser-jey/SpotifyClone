@@ -35,7 +35,6 @@ final class APICaller {
                     
                     do {
                         let result = try JSONDecoder().decode(AlbumDetailsResponse.self, from: data)
-                        print(result)
                         completion(.success(result))
                     } catch {
                         print(error)
@@ -60,7 +59,6 @@ final class APICaller {
                     
                     do {
                         let result = try JSONDecoder().decode(PlaylistDetailsResponse.self, from: data)
-                        print(result)
                         completion(.success(result))
                     } catch {
                         print(error)
@@ -162,7 +160,6 @@ final class APICaller {
                 
                 do {
                     let result = try JSONDecoder().decode(RecommendationsResponse.self, from: data)
-                    print(result)
                     comletion(.success(result))
                 } catch  {
                     comletion(.failure(error))
@@ -218,7 +215,6 @@ final class APICaller {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             request.httpMethod = type.rawValue
             request.timeoutInterval = 30
-            print(request)
             completion(request)
         }
     }
