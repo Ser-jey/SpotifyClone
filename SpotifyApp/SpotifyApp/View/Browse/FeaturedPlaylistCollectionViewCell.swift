@@ -82,8 +82,7 @@ class FeaturedPlaylistCollectionViewCell: UICollectionViewCell {
             width: contentView.width - 6,
             height: 24
         )
-//        playlistNameLabel.backgroundColor = .red
-//        creatorNameLabel.backgroundColor = .green
+
         playlistCoverImageView.frame = CGRect(
             x: (contentView.width/2) - (imageSize/2),
             y: 5,

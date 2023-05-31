@@ -91,7 +91,7 @@ class NewReleaseCollectionViewCell: UICollectionViewCell {
         numberOfTracksLabel.frame = CGRect(
             x: albumCoverImageView.right + 10,
             y: contentView.bottom - 35,
-            width: albumNameSize.width,
+            width: width - imageSize,
             height: 35
         )
     }
