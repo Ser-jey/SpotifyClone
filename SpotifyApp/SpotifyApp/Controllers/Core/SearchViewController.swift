@@ -42,7 +42,7 @@ class SearchViewController: UIViewController {
         })
     )
     
-    private var categories: [CategoryCollectionViewCellViewModel] = []
+    private var categories: [Category] = []
     
     // MARK: - Lifecycle
     
@@ -60,10 +60,7 @@ class SearchViewController: UIViewController {
                 switch result {
                 case .success(let categories):
                     DispatchQueue.main.async {
-                        self?.categories = categories.compactMap({ return CategoryCollectionViewCellViewModel(
-                            title: $0.name,
-                            artWorkUrl: URL(string: $0.icons.first?.url ?? "")
-                        )})
+                        self?.categories = categories
                         self?.collectionView.reloadData()
                     }
                 case .failure(let error):
@@ -117,9 +114,23 @@ extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSo
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCollectionViewCell.identifier, for: indexPath) as? CategoryCollectionViewCell else { return UICollectionViewCell() }
-        cell.configure(with: categories[indexPath.row])
+        let category = categories[indexPath.row]
+        let categoryVM = CategoryCollectionViewCellViewModel(
+            title: category.name,
+            artWorkUrl: URL(string: category.icons.first?.url ?? "")
+        )
+        cell.configure(with: categoryVM)
         return cell
     }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.deselectItem(at: indexPath, animated: true)
+        let vc = CategoryViewController(category: categories[indexPath.row])
+        vc.navigationItem.largeTitleDisplayMode = .never
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    
     
     
     
