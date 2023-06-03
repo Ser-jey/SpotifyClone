@@ -7,7 +7,7 @@
 
 import UIKit
 
-class SearchViewController: UIViewController {
+class SearchViewController: UIViewController, UISearchBarDelegate {
 
     let searchController: UISearchController = {
         let vc = UISearchController(searchResultsController: SearchResultsViewController())
@@ -51,6 +51,8 @@ class SearchViewController: UIViewController {
         view.backgroundColor = .systemBackground
         navigationItem.searchController = searchController
         searchController.searchResultsUpdater = self
+        searchController.searchBar.delegate = self
+        
         view.addSubview(collectionView)
         collectionView.register(CategoryCollectionViewCell.self, forCellWithReuseIdentifier: CategoryCollectionViewCell.identifier)
         collectionView.delegate = self
@@ -68,17 +70,6 @@ class SearchViewController: UIViewController {
                 }
             }
         }
-        let c = Category(id: "toplists", name: "toplists", icons: [APIImage(url: "")])
-        APICaller.shared.getCategoryPlaylist(category: c) { [weak self] result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let model):
-                    break
-                case .failure(let error):
-                    print(error.localizedDescription)
-                }
-            }
-        }
     }
     
     override func viewDidLayoutSubviews() {
@@ -90,17 +81,57 @@ class SearchViewController: UIViewController {
 
 }
 
-extension SearchViewController: UISearchResultsUpdating {
+// MARK: - SearchViewController
+
+extension SearchViewController: UISearchResultsUpdating, SearchResultsViewControllerDelegate {
+    func didTapResult(_ result: SearchResult) {
+        switch result {
+        case .artist(model: let model):
+            break
+        case .album(model: let model):
+            let vc = AlbumViewController(album: model)
+            vc.navigationItem.largeTitleDisplayMode = .never
+            navigationController?.pushViewController(vc, animated: true)
+        case .playlist(model: let model):
+            let vc = PlaylistViewController(playlist: model)
+            vc.navigationItem.largeTitleDisplayMode = .never
+            navigationController?.pushViewController(vc, animated: true)
+        case .track(model: let model):
+            break
+             }
+    }
+    
+    
+    func didTapResult(_ controller: UIViewController) {
+        
+    }
+    
     
     func updateSearchResults(for searchController: UISearchController) {
-        guard let query = searchController.searchBar.text,
-                !query.trimmingCharacters(in: .whitespaces).isEmpty else {
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        guard let searchController = searchController.searchResultsController as? SearchResultsViewController,
+              let query = searchBar.text,
+              !query.trimmingCharacters(in: .whitespaces).isEmpty else {
             return
         }
-        print(query)
+        searchController.delegate = self
+        APICaller.shared.search(with: query) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let results):
+                    searchController.update(with: results)
+                case .failure(let error):
+                    break
+                }
+            }
+        }
     }
     
 }
+
+// MARK: - UICollectionView
 
 extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSource {
     
@@ -130,9 +161,5 @@ extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSo
         navigationController?.pushViewController(vc, animated: true)
     }
     
-    
-    
-    
-    
-    
+ 
 }
