@@ -103,7 +103,7 @@ final class PlaylistHeaderCollectionReusableView: UICollectionReusableView {
         
         playAllButton.frame = CGRect(
             x: width - 90,
-            y: descriptionLabel.bottom + 3,
+            y: descriptionLabel.bottom - 10,
             width: 60,
             height: 60
         )

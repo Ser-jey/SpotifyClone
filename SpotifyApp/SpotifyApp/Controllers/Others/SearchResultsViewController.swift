@@ -24,6 +24,14 @@ class SearchResultsViewController: UIViewController {
     private let tableView: UITableView = {
         let tableView = UITableView()
         tableView.backgroundColor = .systemBackground
+        tableView.register(
+            SearchResultDefaultTableViewCell.self,
+            forCellReuseIdentifier: SearchResultDefaultTableViewCell.identifier
+        )
+        tableView.register(
+            SearchResultSubtitleTableViewCell.self,
+            forCellReuseIdentifier: SearchResultSubtitleTableViewCell.identifier
+        )
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         tableView.isHidden = true
         return tableView
@@ -103,23 +111,56 @@ extension SearchResultsViewController: UITableViewDelegate, UITableViewDataSourc
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+         let Acell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         
         let sectionType = sections[indexPath.section].results[indexPath.row]
         
         switch sectionType {
         case .artist(model: let model):
-            cell.textLabel?.text = model.name
+            guard let cell = tableView.dequeueReusableCell(withIdentifier: SearchResultDefaultTableViewCell.identifier, for: indexPath) as? SearchResultDefaultTableViewCell else { return UITableViewCell() }
+            let viewModel = SearchResultDefaultTableViewCellViewModel(
+                title: model.name,
+                imageURL: URL(string: model.images?.first?.url ?? "")
+            )
+            cell.configure(with: viewModel)
+            cell.backgroundColor = .secondarySystemBackground
+            return cell
         case .album(model: let model):
-            cell.textLabel?.text = model.name
+            guard let cell = tableView.dequeueReusableCell(withIdentifier: SearchResultSubtitleTableViewCell.identifier, for: indexPath) as? SearchResultSubtitleTableViewCell else { return UITableViewCell() }
+            let viewModel = SearchResultSubtitleTableViewCellViewModel(
+                title: model.name,
+                description: model.artists.first?.name ?? "",
+                imageURL: URL(string: model.images.first?.url ?? "")
+            )
+            cell.configure(with: viewModel)
+            cell.backgroundColor = .secondarySystemBackground
+            return cell
         case .playlist(model: let model):
-            cell.textLabel?.text = model.name
+            guard let cell = tableView.dequeueReusableCell(withIdentifier: SearchResultSubtitleTableViewCell.identifier, for: indexPath) as? SearchResultSubtitleTableViewCell else { return UITableViewCell() }
+            let viewModel = SearchResultSubtitleTableViewCellViewModel(
+                title: model.name,
+                description: model.owner.display_name,
+                imageURL: URL(string: model.images.first?.url ?? "")
+            )
+            cell.configure(with: viewModel)
+            cell.backgroundColor = .secondarySystemBackground
+            return cell
         case .track(model: let model):
-            cell.textLabel?.text = model.name
+            guard let cell = tableView.dequeueReusableCell(withIdentifier: SearchResultDefaultTableViewCell.identifier, for: indexPath) as? SearchResultDefaultTableViewCell else { return UITableViewCell() }
+            let viewModel = SearchResultDefaultTableViewCellViewModel(
+                title: model.name,
+                imageURL: URL(string: model.album?.images.first?.url ?? "")
+            )
+            cell.backgroundColor = .secondarySystemBackground
+            cell.configure(with: viewModel)
+            return cell
+           
         }
+        Acell.backgroundColor = .secondarySystemBackground
         
-        cell.backgroundColor = .secondarySystemBackground
-        return cell
+        return Acell
+        
+       
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {

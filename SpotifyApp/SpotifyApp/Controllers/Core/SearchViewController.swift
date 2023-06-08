@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SafariServices
 
 class SearchViewController: UIViewController, UISearchBarDelegate {
 
@@ -87,7 +88,9 @@ extension SearchViewController: UISearchResultsUpdating, SearchResultsViewContro
     func didTapResult(_ result: SearchResult) {
         switch result {
         case .artist(model: let model):
-            break
+            guard let url = URL(string: model.external_urls.first?.value ?? "") else { return }
+            let vc = SFSafariViewController(url: url)
+            present(vc, animated: true)
         case .album(model: let model):
             let vc = AlbumViewController(album: model)
             vc.navigationItem.largeTitleDisplayMode = .never
@@ -97,7 +100,7 @@ extension SearchViewController: UISearchResultsUpdating, SearchResultsViewContro
             vc.navigationItem.largeTitleDisplayMode = .never
             navigationController?.pushViewController(vc, animated: true)
         case .track(model: let model):
-            break
+            PlaybackPresenter.startPlayback(from: self, track: model)
              }
     }
     
